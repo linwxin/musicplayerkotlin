@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Musicplayerkotlin" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="colorAccent">@color/primary</item>
+    </style>
+
+    <style name="splash_screen" parent="Theme.MaterialComponents.DayNight.NoActionBar" >
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+        <item name="colorAccent">@color/primary</item>
+    </style>
+</resources>
