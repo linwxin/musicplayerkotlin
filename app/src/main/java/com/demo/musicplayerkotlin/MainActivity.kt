@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.demo.musicplayerkotlin.databinding.ActivityMainBinding
 import kotlin.system.exitProcess
 
@@ -17,17 +18,11 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var toggle: ActionBarDrawerToggle
 
+    private lateinit var musicAdapter: MusicAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestRuntimePermission()
-        setTheme(R.style.coolPinkNav)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        // for nav drawer
-        toggle = ActionBarDrawerToggle(this, binding.root, R.string.open, R.string.close)
-        binding.root.addDrawerListener(toggle)
-        toggle.syncState()
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        initializeLayout()
 
         binding.shuffleBtn.setOnClickListener {
             startActivity(Intent(this@MainActivity, PlayerActivity::class.java))
@@ -82,5 +77,33 @@ class MainActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+
+    private fun initializeLayout() {
+        requestRuntimePermission()
+        setTheme(R.style.coolPinkNav)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        // for nav drawer
+        toggle = ActionBarDrawerToggle(this, binding.root, R.string.open, R.string.close)
+        binding.root.addDrawerListener(toggle)
+        toggle.syncState()
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        // setting recycle view
+        val musicList = ArrayList<String>()
+        musicList.add("1 Song")
+        musicList.add("2 Song")
+        musicList.add("3 Song")
+        musicList.add("4 Song")
+        musicList.add("5 Song")
+        binding.musicRV.setHasFixedSize(true)
+        binding.musicRV.setItemViewCacheSize(13)
+        binding.musicRV.layoutManager = LinearLayoutManager(this@MainActivity)
+        musicAdapter = MusicAdapter(this@MainActivity, musicList)
+        binding.musicRV.adapter = musicAdapter
+
+        binding.totalSongs.text = "Total Songs: " + musicAdapter.itemCount
+
+    }
+
 
 }
