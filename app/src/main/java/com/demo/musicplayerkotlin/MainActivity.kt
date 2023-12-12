@@ -1,8 +1,11 @@
 package com.demo.musicplayerkotlin
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -10,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.demo.musicplayerkotlin.databinding.ActivityMainBinding
+import java.io.File
 import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity() {
@@ -19,6 +23,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toggle: ActionBarDrawerToggle
 
     private lateinit var musicAdapter: MusicAdapter
+
+    companion object {
+       var MusicListMA : ArrayList<Music> = ArrayList()
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,20 +98,56 @@ class MainActivity : AppCompatActivity() {
         toggle.syncState()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         // setting recycle view
-        val musicList = ArrayList<String>()
-        musicList.add("1 Song")
-        musicList.add("2 Song")
-        musicList.add("3 Song")
-        musicList.add("4 Song")
-        musicList.add("5 Song")
+        MusicListMA = getAllAudio()
         binding.musicRV.setHasFixedSize(true)
         binding.musicRV.setItemViewCacheSize(13)
         binding.musicRV.layoutManager = LinearLayoutManager(this@MainActivity)
-        musicAdapter = MusicAdapter(this@MainActivity, musicList)
+        musicAdapter = MusicAdapter(this@MainActivity, MusicListMA)
         binding.musicRV.adapter = musicAdapter
 
         binding.totalSongs.text = "Total Songs: " + musicAdapter.itemCount
 
+    }
+
+    @SuppressLint("Range")
+    private fun getAllAudio(): ArrayList<Music> {
+        val tempList = ArrayList<Music>()
+        val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0"
+        val projection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID)
+
+        val cursor = this.contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            projection, selection, null, MediaStore.Audio.Media.DATE_ADDED + " DESC ", null)
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    val titleC = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE))
+                    val idC = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID))
+                    val albumC = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM))
+                    val artistC = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST))
+                    val pathC = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA))
+                    val durationC = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION))
+                    val albumIdC = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)).toString()
+                    val uri = Uri.parse("content://media/external/audio/albmart")
+                    val artUriC = Uri.withAppendedPath(uri, albumIdC).toString()
+
+                    val music = Music(id = idC, title = titleC, album = albumC, artist = artistC,
+                        path = pathC, duration = durationC, artUri = artUriC)
+                    val file = File(music.path)
+                    if (file.exists()) {
+                        tempList.add(music)
+
+                    }
+
+                } while (cursor.moveToNext())
+            }
+        }
+
+
+        return tempList
     }
 
 
